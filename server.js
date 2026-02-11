@@ -2,12 +2,23 @@ require("dotenv").config();
 const express = require("express");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
 
+// Enable CORS
 app.use(cors());
 app.use(express.json());
 
+// Serve React build in production
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "build")));
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "build", "index.html"));
+  });
+}
+
+// Send enquiry email
 app.post("/send-email", async (req, res) => {
   const { name, email, mobile, service, message } = req.body;
 
@@ -15,14 +26,14 @@ app.post("/send-email", async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: process.env.EMAIL_USER,       // your Gmail
+        pass: process.env.EMAIL_PASS,       // App Password
       },
     });
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: "zophion16@gmail.com",
+      to: "zophion16@gmail.com", // where enquiries will be sent
       subject: "New Enquiry Received",
       html: `
         <h3>New Enquiry</h3>
@@ -34,15 +45,17 @@ app.post("/send-email", async (req, res) => {
       `,
     };
 
-    await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email sent successfully:", info.response);
 
     res.status(200).json({ message: "Email Sent Successfully" });
   } catch (error) {
-    console.log(error);
+    console.log("Error sending email:", error);
     res.status(500).json({ message: "Email Failed" });
   }
 });
 
+// PORT
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
