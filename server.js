@@ -2,14 +2,24 @@ require("dotenv").config();
 const express = require("express");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
-const path = require("path");
 
 const app = express();
 
-app.use(cors());
+// ✅ Allow CORS (important for cPanel frontend)
+app.use(cors({
+  origin: "*",   // You can restrict to your domain later
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type"]
+}));
+
 app.use(express.json());
 
-// Send Email API
+// ✅ Root route (to test backend in browser)
+app.get("/", (req, res) => {
+  res.send("Zophion Backend Running 🚀");
+});
+
+// ✅ Send Email API
 app.post("/send-email", async (req, res) => {
   const { name, email, mobile, service, message } = req.body;
 
@@ -37,21 +47,14 @@ app.post("/send-email", async (req, res) => {
     });
 
     res.status(200).json({ message: "Email Sent Successfully" });
+
   } catch (error) {
-    console.error(error);
+    console.error("Email Error:", error);
     res.status(500).json({ message: "Email Failed" });
   }
 });
 
-// Serve React Build
-if (process.env.NODE_ENV === "production") {
-  const buildPath = path.join(__dirname, "build");
-  app.use(express.static(buildPath));
-
-  app.get("/*", (req, res) => {
-    res.sendFile(path.join(buildPath, "index.html"));
-  });
-}
-
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
