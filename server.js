@@ -1,49 +1,33 @@
 require("dotenv").config();
 const express = require("express");
-const nodemailer = require("nodemailer");
 const cors = require("cors");
+const SibApiV3Sdk = require("@getbrevo/brevo");
 
 const app = express();
 
-// ✅ CORS
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"]
-}));
-
+app.use(cors());
 app.use(express.json());
 
-// ✅ Root Route
 app.get("/", (req, res) => {
   res.send("Zophion Backend Running 🚀");
 });
 
-// ✅ Send Email API
 app.post("/send-email", async (req, res) => {
   const { name, email, mobile, service, message } = req.body;
 
   try {
+    const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
-    // 🔥 FIXED SMTP CONFIG (Important)
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false, // TLS
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
+    apiInstance.setApiKey(
+      SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey,
+      process.env.BREVO_API_KEY
+    );
 
-    // Optional: verify connection
-    await transporter.verify();
-
-    await transporter.sendMail({
-      from: `"Zophion Website" <${process.env.EMAIL_USER}>`,
-      to: "zophion16@gmail.com",
+    const sendSmtpEmail = {
+      sender: { email: "zophion16@gmail.com", name: "Zophion" },
+      to: [{ email: "zophion16@gmail.com" }],
       subject: "New Enquiry Received",
-      html: `
+      htmlContent: `
         <h3>New Enquiry</h3>
         <p><b>Name:</b> ${name}</p>
         <p><b>Email:</b> ${email}</p>
@@ -51,7 +35,9 @@ app.post("/send-email", async (req, res) => {
         <p><b>Service:</b> ${service}</p>
         <p><b>Message:</b> ${message}</p>
       `
-    });
+    };
+
+    await apiInstance.sendTransacEmail(sendSmtpEmail);
 
     res.status(200).json({ message: "Email Sent Successfully" });
 
