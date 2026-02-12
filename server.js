@@ -5,17 +5,21 @@ const SibApiV3Sdk = require("@getbrevo/brevo");
 
 const app = express();
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
+// Test Route
 app.get("/", (req, res) => {
   res.send("Zophion Backend Running 🚀");
 });
 
+// Send Email Route
 app.post("/send-email", async (req, res) => {
   const { name, email, mobile, service, message } = req.body;
 
   try {
+    // Setup Brevo API
     const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
     apiInstance.setApiKey(
@@ -23,9 +27,17 @@ app.post("/send-email", async (req, res) => {
       process.env.BREVO_API_KEY
     );
 
+    // Email Data
     const sendSmtpEmail = {
-      sender: { email: "zophion16@gmail.com", name: "Zophion" },
-      to: [{ email: "zophion16@gmail.com" }],
+      sender: {
+        email: "zophion16@gmail.com",   // MUST be verified in Brevo
+        name: "Zophion"
+      },
+      to: [
+        {
+          email: "zophion16@gmail.com"
+        }
+      ],
       subject: "New Enquiry Received",
       htmlContent: `
         <h3>New Enquiry</h3>
@@ -37,13 +49,24 @@ app.post("/send-email", async (req, res) => {
       `
     };
 
-    await apiInstance.sendTransacEmail(sendSmtpEmail);
+    const result = await apiInstance.sendTransacEmail(sendSmtpEmail);
 
-    res.status(200).json({ message: "Email Sent Successfully" });
+    console.log("Email Sent Successfully:", result);
+
+    res.status(200).json({
+      message: "Email Sent Successfully"
+    });
 
   } catch (error) {
-    console.error("Email Error:", error);
-    res.status(500).json({ message: "Email Failed" });
+    console.error(
+      "FULL BREVO ERROR:",
+      error.response?.body || error.message || error
+    );
+
+    res.status(500).json({
+      message: "Email Failed",
+      error: error.response?.body || error.message
+    });
   }
 });
 
