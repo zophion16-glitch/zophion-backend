@@ -6,16 +6,27 @@ const path = require("path");
 
 const app = express();
 
-// Enable CORS
+
+
+
+
+
+
+
 app.use(cors());
 app.use(express.json());
 
 // Serve React build in production
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "build")));
-  app.get("*", (req, res) => {
+  app.use((req, res, next) => {
+  if (req.method === "GET") {
     res.sendFile(path.join(__dirname, "build", "index.html"));
-  });
+  } else {
+    next();
+  }
+});
+
 }
 
 // Send enquiry email
@@ -46,7 +57,7 @@ app.post("/send-email", async (req, res) => {
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent successfully:", info.response);
+    // console.log("Email sent successfully:", info.response);
 
     res.status(200).json({ message: "Email Sent Successfully" });
   } catch (error) {
