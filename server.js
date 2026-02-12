@@ -5,21 +5,19 @@ const cors = require("cors");
 const path = require("path");
 
 const app = express();
-
 app.use(cors());
 app.use(express.json());
 
-// Nodemailer API
+// POST /send-email route
 app.post("/send-email", async (req, res) => {
   const { name, email, mobile, service, message } = req.body;
-
   try {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
+        pass: process.env.EMAIL_PASS
+      }
     });
 
     const mailOptions = {
@@ -33,7 +31,7 @@ app.post("/send-email", async (req, res) => {
         <p><b>Mobile:</b> ${mobile}</p>
         <p><b>Service:</b> ${service}</p>
         <p><b>Message:</b> ${message}</p>
-      `,
+      `
     };
 
     await transporter.sendMail(mailOptions);
@@ -49,7 +47,7 @@ if (process.env.NODE_ENV === "production") {
   const buildPath = path.join(__dirname, "build");
   app.use(express.static(buildPath));
 
-  // ✅ Fix wildcard crash
+  // Express 5 compatible wildcard
   app.get("/*", (req, res) => {
     res.sendFile(path.join(buildPath, "index.html"));
   });
