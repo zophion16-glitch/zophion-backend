@@ -6,30 +6,10 @@ const path = require("path");
 
 const app = express();
 
-
-
-
-
-
-
-
 app.use(cors());
 app.use(express.json());
 
-// Serve React build in production
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "build")));
-  app.use((req, res, next) => {
-  if (req.method === "GET") {
-    res.sendFile(path.join(__dirname, "build", "index.html"));
-  } else {
-    next();
-  }
-});
-
-}
-
-// Send enquiry email
+// Nodemailer API
 app.post("/send-email", async (req, res) => {
   const { name, email, mobile, service, message } = req.body;
 
@@ -37,14 +17,14 @@ app.post("/send-email", async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.EMAIL_USER,       // your Gmail
-        pass: process.env.EMAIL_PASS,       // App Password
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: "zophion16@gmail.com", // where enquiries will be sent
+      to: "zophion16@gmail.com",
       subject: "New Enquiry Received",
       html: `
         <h3>New Enquiry</h3>
@@ -56,19 +36,25 @@ app.post("/send-email", async (req, res) => {
       `,
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    // console.log("Email sent successfully:", info.response);
-
+    await transporter.sendMail(mailOptions);
     res.status(200).json({ message: "Email Sent Successfully" });
   } catch (error) {
-    console.log("Error sending email:", error);
+    console.error("Error sending email:", error);
     res.status(500).json({ message: "Email Failed" });
   }
 });
 
+// Serve React build
+if (process.env.NODE_ENV === "production") {
+  const buildPath = path.join(__dirname, "build");
+  app.use(express.static(buildPath));
+
+  // ✅ Fix wildcard crash
+  app.get("/*", (req, res) => {
+    res.sendFile(path.join(buildPath, "index.html"));
+  });
+}
+
 // PORT
 const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
