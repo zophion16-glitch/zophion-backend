@@ -5,21 +5,13 @@ const cors = require("cors");
 
 const app = express();
 
-// ✅ Allow CORS (important for cPanel frontend)
-app.use(cors({
-  origin: "*",   // You can restrict to your domain later
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"]
-}));
-
+app.use(cors());
 app.use(express.json());
 
-// ✅ Root route (to test backend in browser)
 app.get("/", (req, res) => {
   res.send("Zophion Backend Running 🚀");
 });
 
-// ✅ Send Email API
 app.post("/send-email", async (req, res) => {
   const { name, email, mobile, service, message } = req.body;
 
@@ -49,12 +41,10 @@ app.post("/send-email", async (req, res) => {
     res.status(200).json({ message: "Email Sent Successfully" });
 
   } catch (error) {
-    console.error("Email Error:", error);
+    console.error(error);
     res.status(500).json({ message: "Email Failed" });
   }
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
