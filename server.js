@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
-const cors = require("cors");
 const nodemailer = require("nodemailer");
+const cors = require("cors");
 
 const app = express();
 
@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("Backend Running 🚀");
+  res.send("Zophion Backend Running 🚀");
 });
 
 app.post("/send-email", async (req, res) => {
@@ -24,10 +24,10 @@ app.post("/send-email", async (req, res) => {
       },
     });
 
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER,
-      subject: "New Enquiry - Zophion",
+    const mailOptions = {
+      from: `"Zophion Enquiry" <${process.env.EMAIL_USER}>`,
+      to: "zophion16@gmail.com",
+      subject: "New Enquiry Received",
       html: `
         <h3>New Enquiry</h3>
         <p><b>Name:</b> ${name}</p>
@@ -36,15 +36,18 @@ app.post("/send-email", async (req, res) => {
         <p><b>Service:</b> ${service}</p>
         <p><b>Message:</b> ${message}</p>
       `,
-    });
+    };
 
-    res.status(200).json({ message: "Email Sent Successfully" });
+    await transporter.sendMail(mailOptions);
 
+    res.status(200).json({ success: true });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Email Failed" });
+    res.status(500).json({ success: false });
   }
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log("Server started on port " + PORT));
+app.listen(PORT, () => {
+  console.log("Server running on port", PORT);
+});
