@@ -5,15 +5,14 @@ const cors = require("cors");
 
 const app = express();
 
-/* ✅ Proper CORS */
-app.use(cors({
+/* ✅ Perfect CORS */
+const corsOptions = {
   origin: "https://zophion-frontend.netlify.app",
-  methods: ["GET", "POST", "OPTIONS"],
-  credentials: true
-}));
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type"],
+};
 
-app.options("*", cors()); // ⭐ important for preflight
-
+app.use(cors(corsOptions));
 app.use(express.json());
 
 /* Root test */
