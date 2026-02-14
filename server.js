@@ -25,12 +25,18 @@ app.post("/send-email", async (req, res) => {
   const { name, email, mobile, service, message } = req.body;
 
   try {
+    /* ✅ FIXED transporter */
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 587,          // 🔥 IMPORTANT FIX
+      secure: false,      // 🔥 IMPORTANT FIX
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
     });
 
     await transporter.sendMail({
@@ -47,10 +53,11 @@ app.post("/send-email", async (req, res) => {
       `,
     });
 
-    res.status(200).json({ success: true });
+    res.status(200).json({ success: true, message: "Email sent successfully" });
+
   } catch (err) {
     console.error("Email error:", err);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, message: "Email failed to send" });
   }
 });
 
