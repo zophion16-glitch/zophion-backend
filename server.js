@@ -5,13 +5,23 @@ const cors = require("cors");
 
 const app = express();
 
-app.use(cors());
+/* 🔥 Proper CORS setup */
+app.use(cors({
+  origin: ["https://zophion-frontend.netlify.app"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true
+}));
+
+app.options("*", cors()); // allow preflight
+
 app.use(express.json());
 
+/* Root test */
 app.get("/", (req, res) => {
   res.send("Zophion Backend Running 🚀");
 });
 
+/* Send email route */
 app.post("/send-email", async (req, res) => {
   const { name, email, mobile, service, message } = req.body;
 
@@ -42,8 +52,8 @@ app.post("/send-email", async (req, res) => {
 
     res.status(200).json({ success: true });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false });
+    console.error("Email error:", error);
+    res.status(500).json({ success: false, error: "Email sending failed" });
   }
 });
 
