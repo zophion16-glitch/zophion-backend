@@ -5,14 +5,10 @@ const cors = require("cors");
 
 const app = express();
 
-/* 🔥 Proper CORS setup */
+/* ✅ Simple & safe CORS */
 app.use(cors({
-  origin: ["https://zophion-frontend.netlify.app"],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  credentials: true
+  origin: "https://zophion-frontend.netlify.app",
 }));
-
-app.options("*", cors()); // allow preflight
 
 app.use(express.json());
 
@@ -34,7 +30,7 @@ app.post("/send-email", async (req, res) => {
       },
     });
 
-    const mailOptions = {
+    await transporter.sendMail({
       from: `"Zophion Enquiry" <${process.env.EMAIL_USER}>`,
       to: "zophion16@gmail.com",
       subject: "New Enquiry Received",
@@ -46,18 +42,14 @@ app.post("/send-email", async (req, res) => {
         <p><b>Service:</b> ${service}</p>
         <p><b>Message:</b> ${message}</p>
       `,
-    };
-
-    await transporter.sendMail(mailOptions);
+    });
 
     res.status(200).json({ success: true });
-  } catch (error) {
-    console.error("Email error:", error);
-    res.status(500).json({ success: false, error: "Email sending failed" });
+  } catch (err) {
+    console.error("Email error:", err);
+    res.status(500).json({ success: false });
   }
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log("Server running on port", PORT);
-});
+app.listen(PORT, () => console.log("Server running on port", PORT));
